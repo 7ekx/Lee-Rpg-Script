@@ -17,7 +17,9 @@ end
 
 local player = game.Players.LocalPlayer
 setupCharacter(player.Character or player.CharacterAdded:Wait())
-player.CharacterAdded:Connect(setupCharacter)
+player.CharacterAdded:Connect(function(character)
+    setupCharacter(character)
+end)
 
 local Window = OrionLib:MakeWindow({
     Name = "Lee:// Rpg / v.4.0.5",
@@ -182,8 +184,8 @@ AutofarmTab:AddSlider({
 
 local function tp(pos)
     local tween = game:GetService("TweenService"):Create(
-        humanoidRootPart, 
-        TweenInfo.new((humanoidRootPart.Position - pos.Position).magnitude / speed, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0), 
+        game.Players.LocalPlayer.Character.HumanoidRootPart, 
+        TweenInfo.new((player.Character.HumanoidRootPart.Position - pos.Position).magnitude / speed, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0), 
         {CFrame = pos}
     )
 
@@ -218,7 +220,7 @@ spawn(function()
             local nearmob, dist = nil, math.huge
             for _, v in pairs(game:GetService("Workspace").Entities:GetChildren()) do
                 if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
-                    local magnitude = (humanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+                    local magnitude = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
                     if magnitude < dist and magnitude <= searchRange then
                         nearmob, dist = v, magnitude
                     end
@@ -227,15 +229,15 @@ spawn(function()
             if nearmob then
                 tp(nearmob.HumanoidRootPart.CFrame * CFrame.new(0, y, 0) - nearmob.HumanoidRootPart.CFrame.LookVector * distance)
                 if OrionLib.Flags["Freeze"].Value then
-                    nearmob.HumanoidRootPart.Anchored = true
-                    task.wait(.1)
+                    -- Freeze NPC logic
                 end
-                punch(nearmob)
-                wait(0.1)
-                if mobDied(nearmob) then
-                    nearmob:Destroy()
+                while OrionLib.Flags["Autofarm"].Value and nearmob and nearmob:FindFirstChild("Humanoid") and nearmob.Humanoid.Health > 0 do
+                    punch(nearmob)
+                    task.wait(waiteditor)
                 end
             end
         end
     end
 end)
+]]
+
